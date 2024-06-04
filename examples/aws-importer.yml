@@ -1,0 +1,26 @@
+name: aws-importer
+description: example manifest utilizing the AWS plugin
+tags: null
+initialize:
+  plugins:
+    aws-importer:
+      method: AwsImporter
+      path: 'aws-importer'
+      global-config:
+        aws-importer:
+          tag: 'GreenSoftware'
+          location: eu-central-1
+          aws-services: 'ec2, ebs'
+          aws-observation: 60
+        metric:
+          cloudwatch-namespace: 'TOS_AMI_CloudwatchAgentMetrics'
+          client-namespace: 'AWS/EC2'
+  outputs: ['yaml']
+tree:
+  children:
+    child:
+      pipeline:
+        - aws-importer
+      inputs:
+        - timestamp: '2024-06-03T08:00:00.000Z'
+          duration: 3600
