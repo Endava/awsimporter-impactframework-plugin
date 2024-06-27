@@ -7,19 +7,36 @@ jest.mock('@aws-sdk/client-ec2', () => {
   return {
     ...originalModule,
     EC2Client: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation(() => {
-        return Promise.resolve({
-          Volumes: [
-            {
-              VolumeType: 'gp3',
-              Size: 100,
-            },
-            {
-              VolumeType: 'sc1',
-              Size: 500,
-            },
-          ],
-        });
+      send: jest.fn().mockImplementation((command) => {
+        const volumeIds = command.input.VolumeIds;
+
+        if (volumeIds && volumeIds.includes('no-volumes')) {
+          return Promise.resolve({
+            Volumes: undefined,
+          });
+        } else if (volumeIds && volumeIds.includes('unknown-type')) {
+          return Promise.resolve({
+            Volumes: [
+              {
+                VolumeType: 'unknown',
+                Size: 200,
+              },
+            ],
+          });
+        } else {
+          return Promise.resolve({
+            Volumes: [
+              {
+                VolumeType: 'gp3',
+                Size: 100,
+              },
+              {
+                VolumeType: 'sc1',
+                Size: 500,
+              },
+            ],
+          });
+        }
       }),
     })),
   };
@@ -39,6 +56,33 @@ describe('getEc2Volumes', () => {
     ];
 
     const result = await getEc2Volumes(mockInputVolumes);
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it('returns undefined when response.Volumes is undefined', async () => {
+    const input = {
+      ...mockInputVolumes,
+      volumeIds: ['no-volumes'],
+    };
+
+    const result = await getEc2Volumes(input);
+    expect(result).toBeUndefined();
+  });
+
+  it('handles unknown VolumeType by setting storageType to undefined', async () => {
+    const input = {
+      ...mockInputVolumes,
+      volumeIds: ['unknown-type'],
+    };
+
+    const expectedOutput = [
+      {
+        'storage/type': undefined,
+        'storage/capacity': 200,
+      },
+    ];
+
+    const result = await getEc2Volumes(input);
     expect(result).toEqual(expectedOutput);
   });
 });

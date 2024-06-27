@@ -8,7 +8,7 @@ export const getEc2Volumes = async ({
   region,
   volumeIds,
   credentials,
-}: GetEC2VolumesInput): Promise<VolumesOutput[]> => {
+}: GetEC2VolumesInput): Promise<VolumesOutput[] | undefined> => {
   const ec2Client = new EC2Client({
     region,
     credentials,
@@ -31,7 +31,7 @@ export const getEc2Volumes = async ({
   if (!volumes) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return;
+    return undefined;
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

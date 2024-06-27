@@ -110,7 +110,7 @@ export const AwsImporter = (
         };
       });
 
-      const diskData = volumesData.flatMap(value => {
+      const diskData = volumesData?.flatMap(value => {
         return {
           ...input,
           location: region,

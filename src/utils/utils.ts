@@ -137,13 +137,20 @@ export const groupItems = (items: {
     [key: string]: number;
   }[] = [];
 
+  if (!items[METRICS_CONFIG.MEM_TOTAL]) {
+    return groupedArray;
+  }
+
   for (let i = 0; i < items[METRICS_CONFIG.MEM_TOTAL].length; i++) {
     const groupedObject: {[key: string]: number} = {};
 
     groupedObject[METRICS_CONFIG.MEM_UTILIZATION] =
       items[METRICS_CONFIG.MEM_TOTAL][i];
-    groupedObject[METRICS_CONFIG.CPU_UTILIZATION] =
-      items[METRICS_CONFIG.CPU_UTILIZATION_EC2][i];
+
+    if (items[METRICS_CONFIG.CPU_UTILIZATION_EC2]) {
+      groupedObject[METRICS_CONFIG.CPU_UTILIZATION] =
+        items[METRICS_CONFIG.CPU_UTILIZATION_EC2][i];
+    }
 
     groupedArray.push(groupedObject);
   }
@@ -197,9 +204,7 @@ export const getMetricAverages = (resolvedMetricData: any) => {
 
 export const getFinalGroupedItems = (resolvedMetricData: any) => {
   const metricAverages = getMetricAverages(resolvedMetricData);
-  console.log('metricAverages', metricAverages);
   const groupedItems = groupItemsByKeys(metricAverages);
-  console.log('groupedItems', groupedItems);
   return groupItems(groupedItems);
 };
 
