@@ -64,6 +64,7 @@ jobs:
             -Dsonar.tests=src/__tests__
             -Dsonar.test.inclusions=src/**/*.test*.ts
             -Dsonar.cpd.exclusions=src/__mocks__/*.ts
+            -Dsonar.coverage.exclusions=src/__mocks__/*.ts
             -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
           projectBaseDir: .
 

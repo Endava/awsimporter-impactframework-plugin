@@ -1,4 +1,4 @@
-import {Ec2Machine} from '../types';
+import {CloudWatchData, Ec2Machine, StorageData} from '../types';
 
 export const mockGlobalConfig = {
   'aws-importer': {
@@ -130,6 +130,26 @@ export const mockInstances: Ec2Machine[] = [
   },
 ];
 
+export const mockInstancesEmptyBlockDevices: Ec2Machine[] = [
+  {
+    InstanceId: 'i-1234567890abcdef0',
+    ImageId: 'ami-1234567890abcdef0',
+    InstanceType: 't2.micro',
+    RootDeviceName: '/dev/sda1',
+    BlockDevices: [],
+  },
+];
+
+export const mockInstancesNotDefiniedBlockDevices: Ec2Machine[] = [
+  {
+    InstanceId: 'i-1234567890abcdef0',
+    ImageId: 'ami-1234567890abcdef0',
+    InstanceType: 't2.micro',
+    RootDeviceName: '/dev/sda1',
+    BlockDevices: undefined,
+  },
+];
+
 export const mockInputEC2Machines = {
   region: 'eu-central-1',
   credentials: {
@@ -148,3 +168,30 @@ export const mockInputVolumes = {
     secretAccessKey: 'fakeSecretAccessKey',
   },
 };
+
+export const mockAllCloudWatchData: CloudWatchData[] = [
+  {
+    timestamp: '2024-06-21T12:00:00Z',
+    duration: 60,
+    location: 'us-east-1',
+    geolocation: '38.8809212,-77.1845565',
+    ['cloud/vendor']: 'aws',
+    ['cloud/service']: 'ec2',
+    ['cloud/instance-type']: 't2.micro',
+    ['memory/utilization']: 50,
+    ['cpu/utilization']: 30,
+  },
+];
+
+export const mockDiskData: StorageData[] = [
+  {
+    timestamp: '2024-06-21T12:00:00Z',
+    duration: 60,
+    location: 'us-east-1',
+    geolocation: '38.8809212,-77.1845565',
+    ['cloud/vendor']: 'aws',
+    ['cloud/service']: 'ebs',
+    ['storage/type']: 'gp2',
+    ['storage/capacity']: 100,
+  },
+];

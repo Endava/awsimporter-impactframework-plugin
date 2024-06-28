@@ -42,7 +42,7 @@ export const getEC2Machines = async ({
    * Process the response to extract and format the relevant data based on the Reservations key
    */
   const ec2MachinesData = ec2Machines.Reservations?.flatMap(
-    instances => instances.Instances
+    instances => instances.Instances ?? []
   ).map(instance => ({
     InstanceId: instance?.InstanceId ?? '',
     ImageId: instance?.ImageId ?? '',
