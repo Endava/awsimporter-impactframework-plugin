@@ -7,7 +7,7 @@ jest.mock('@aws-sdk/client-ec2', () => {
   return {
     ...originalModule,
     EC2Client: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation((command) => {
+      send: jest.fn().mockImplementation(command => {
         const volumeIds = command.input.VolumeIds;
 
         if (volumeIds && volumeIds.includes('no-volumes')) {

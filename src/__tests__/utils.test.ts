@@ -1,6 +1,12 @@
-import { METRICS_CONFIG } from '../constants/constants';
-import { mockAllCloudWatchData, mockDiskData, mockInstances, mockInstancesEmptyBlockDevices, mockInstancesNotDefiniedBlockDevices } from '../__mocks__';
-import { AWSRegion, DataItem, Datapoint, Ec2Machine } from '../types';
+import {METRICS_CONFIG} from '../constants/constants';
+import {
+  mockAllCloudWatchData,
+  mockDiskData,
+  mockInstances,
+  mockInstancesEmptyBlockDevices,
+  mockInstancesNotDefiniedBlockDevices,
+} from '../__mocks__';
+import {AWSRegion, DataItem, Datapoint} from '../types';
 import {
   getFinalData,
   getVolumeIds,
@@ -14,57 +20,77 @@ import {
   groupItemsByKeys,
   getMetricAverages,
 } from '../utils/utils';
-import { DescribeInstancesCommandInput } from '@aws-sdk/client-ec2';
+import {DescribeInstancesCommandInput} from '@aws-sdk/client-ec2';
 
 jest.mock('@aws-sdk/client-ec2', () => {
   const originalModule = jest.requireActual('@aws-sdk/client-ec2');
   return {
     ...originalModule,
     EC2Client: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation((command: { input: DescribeInstancesCommandInput }) => {
-        const tagFilter = command.input.Filters?.find((filter) => filter.Name === 'tag:Project');
-        const tagValue = tagFilter?.Values?.[0] ?? '';
+      send: jest
+        .fn()
+        .mockImplementation(
+          (command: {input: DescribeInstancesCommandInput}) => {
+            const tagFilter = command.input.Filters?.find(
+              filter => filter.Name === 'tag:Project'
+            );
+            const tagValue = tagFilter?.Values?.[0] ?? '';
 
-        if (tagValue === 'no-defined-block-devices') {
-          return Promise.resolve({
-            Reservations: [{
-              Instances: [{
-                InstanceId: 'i-1234567890abcdef0',
-                ImageId: 'ami-05d72852800cbf29e',
-                InstanceType: 't2.micro',
-                RootDeviceName: '/dev/sda1',
-                BlockDevices: [],
-              }],
-            }],
-          });
-        } else if (tagValue === 'no-block-devices') {
-          return Promise.resolve({
-            Reservations: [{
-              Instances: [{
-                InstanceId: 'i-1234567890abcdef0',
-                ImageId: 'ami-05d72852800cbf29e',
-                InstanceType: 't2.micro',
-                RootDeviceName: '/dev/sda1',
-                BlockDevices: undefined,
-              }],
-            }],
-          });
-        }
-        return Promise.resolve({
-          Reservations: [{
-            Instances: [{
-              InstanceId: 'i-1234567890abcdef0',
-              ImageId: 'ami-05d72852800cbf29e',
-              InstanceType: 't2.micro',
-              RootDeviceName: '/dev/sda1',
-              BlockDevices: [{
-                DeviceName: '/dev/sda1',
-                Ebs: { VolumeId: 'vol-01c4a06424ff37c90' },
-              }],
-            }],
-          }],
-        });
-      }),
+            if (tagValue === 'no-defined-block-devices') {
+              return Promise.resolve({
+                Reservations: [
+                  {
+                    Instances: [
+                      {
+                        InstanceId: 'i-1234567890abcdef0',
+                        ImageId: 'ami-05d72852800cbf29e',
+                        InstanceType: 't2.micro',
+                        RootDeviceName: '/dev/sda1',
+                        BlockDevices: [],
+                      },
+                    ],
+                  },
+                ],
+              });
+            } else if (tagValue === 'no-block-devices') {
+              return Promise.resolve({
+                Reservations: [
+                  {
+                    Instances: [
+                      {
+                        InstanceId: 'i-1234567890abcdef0',
+                        ImageId: 'ami-05d72852800cbf29e',
+                        InstanceType: 't2.micro',
+                        RootDeviceName: '/dev/sda1',
+                        BlockDevices: undefined,
+                      },
+                    ],
+                  },
+                ],
+              });
+            }
+            return Promise.resolve({
+              Reservations: [
+                {
+                  Instances: [
+                    {
+                      InstanceId: 'i-1234567890abcdef0',
+                      ImageId: 'ami-05d72852800cbf29e',
+                      InstanceType: 't2.micro',
+                      RootDeviceName: '/dev/sda1',
+                      BlockDevices: [
+                        {
+                          DeviceName: '/dev/sda1',
+                          Ebs: {VolumeId: 'vol-01c4a06424ff37c90'},
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            });
+          }
+        ),
     })),
   };
 });
@@ -73,28 +99,44 @@ describe('utils', () => {
   describe('getFinalData', () => {
     it('should return final data correctly when both ec2 and ebs services are included', () => {
       const servicesArray = ['ec2', 'ebs'];
-      const finalData = getFinalData(servicesArray, mockAllCloudWatchData, mockDiskData);
+      const finalData = getFinalData(
+        servicesArray,
+        mockAllCloudWatchData,
+        mockDiskData
+      );
 
       expect(finalData).toEqual([...mockAllCloudWatchData, ...mockDiskData]);
     });
 
     it('should return only ec2 data when only ec2 service is included', () => {
       const servicesArray = ['ec2'];
-      const finalData = getFinalData(servicesArray, mockAllCloudWatchData, mockDiskData);
+      const finalData = getFinalData(
+        servicesArray,
+        mockAllCloudWatchData,
+        mockDiskData
+      );
 
       expect(finalData).toEqual(mockAllCloudWatchData);
     });
 
     it('should return only ebs data when only ebs service is included', () => {
       const servicesArray = ['ebs'];
-      const finalData = getFinalData(servicesArray, mockAllCloudWatchData, mockDiskData);
+      const finalData = getFinalData(
+        servicesArray,
+        mockAllCloudWatchData,
+        mockDiskData
+      );
 
       expect(finalData).toEqual(mockDiskData);
     });
 
     it('should return empty array when no services are included', () => {
       const servicesArray: string[] = [];
-      const finalData = getFinalData(servicesArray, mockAllCloudWatchData, mockDiskData);
+      const finalData = getFinalData(
+        servicesArray,
+        mockAllCloudWatchData,
+        mockDiskData
+      );
 
       expect(finalData).toEqual([]);
     });
@@ -165,25 +207,56 @@ describe('utils', () => {
   describe('getFinalGroupedItems', () => {
     const resolvedMetricDataSingle: any[][] = [
       [
-        { Label: METRICS_CONFIG.MEM_TOTAL, Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 1073741824, Unit: 'Bytes' }] },
+        {
+          Label: METRICS_CONFIG.MEM_TOTAL,
+          Datapoints: [
+            {
+              Timestamp: '2024-06-21T12:00:00Z',
+              Average: 1073741824,
+              Unit: 'Bytes',
+            },
+          ],
+        },
       ],
     ];
 
     const resolvedMetricDataMultiple: any[][] = [
       [
-        { Label: METRICS_CONFIG.MEM_TOTAL, Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 3221225472, Unit: 'Bytes' }] },
-        { Label: METRICS_CONFIG.CPU_UTILIZATION_EC2, Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 50 }] },
+        {
+          Label: METRICS_CONFIG.MEM_TOTAL,
+          Datapoints: [
+            {
+              Timestamp: '2024-06-21T12:00:00Z',
+              Average: 3221225472,
+              Unit: 'Bytes',
+            },
+          ],
+        },
+        {
+          Label: METRICS_CONFIG.CPU_UTILIZATION_EC2,
+          Datapoints: [
+            {
+              Timestamp: '2024-06-21T12:00:00Z',
+              Average: 50,
+            },
+          ],
+        },
       ],
     ];
 
     it('should return grouped items correctly for single MEM_TOTAL metric', () => {
       const result = getFinalGroupedItems(resolvedMetricDataSingle);
-      expect(result).toEqual([{ [METRICS_CONFIG.MEM_UTILIZATION]: 1 }]);
+      expect(result).toEqual([{[METRICS_CONFIG.MEM_UTILIZATION]: 1}]);
     });
 
     it('should return grouped items correctly for multiple metrics', () => {
       const result = getFinalGroupedItems(resolvedMetricDataMultiple);
-      expect(result).toEqual([{ [METRICS_CONFIG.MEM_UTILIZATION]: 3, [METRICS_CONFIG.CPU_UTILIZATION]: 50 }]);
+      expect(result).toEqual([
+        {
+          [METRICS_CONFIG.MEM_UTILIZATION]: 3,
+          [METRICS_CONFIG.CPU_UTILIZATION]: 50,
+        },
+      ]);
     });
 
     it('should handle empty resolvedMetricData', () => {
@@ -194,7 +267,15 @@ describe('utils', () => {
     it('should handle resolvedMetricData with no metrics of interest', () => {
       const resolvedMetricDataNoMetrics: any[][] = [
         [
-          { Label: 'other_metric', Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 75 }] },
+          {
+            Label: 'other_metric',
+            Datapoints: [
+              {
+                Timestamp: '2024-06-21T12:00:00Z',
+                Average: 75,
+              },
+            ],
+          },
         ],
       ];
       const result = getFinalGroupedItems(resolvedMetricDataNoMetrics);
@@ -205,8 +286,8 @@ describe('utils', () => {
   describe('calculateAverage', () => {
     it('should calculate average correctly for percent values', () => {
       const datapoints: Datapoint[] = [
-        { Timestamp: new Date(), Average: 30, Unit: 'Percent' },
-        { Timestamp: new Date(), Average: 40, Unit: 'Percent' },
+        {Timestamp: new Date(), Average: 30, Unit: 'Percent'},
+        {Timestamp: new Date(), Average: 40, Unit: 'Percent'},
       ];
       const average = calculateAverage(datapoints, true);
       expect(average).toBeCloseTo(35);
@@ -214,8 +295,8 @@ describe('utils', () => {
 
     it('should calculate average correctly for byte values', () => {
       const datapoints = [
-        { Timestamp: new Date(), Average: 1073741824, Unit: 'Bytes' }, // 1 GB in bytes
-        { Timestamp: new Date(), Average: 2147483648, Unit: 'Bytes' }, // 2 GB in bytes
+        {Timestamp: new Date(), Average: 1073741824, Unit: 'Bytes'}, // 1 GB in bytes
+        {Timestamp: new Date(), Average: 2147483648, Unit: 'Bytes'}, // 2 GB in bytes
       ];
       const average = calculateAverage(datapoints, false);
       expect(average).toBeCloseTo(1.5);
@@ -271,10 +352,18 @@ describe('utils', () => {
     it('should extract instance types correctly', () => {
       const data = [
         {
-          Metrics: [{ Dimensions: [{ Name: 'InstanceType', Value: 't2.micro' }] }],
+          Metrics: [
+            {
+              Dimensions: [{Name: 'InstanceType', Value: 't2.micro'}],
+            },
+          ],
         },
         {
-          Metrics: [{ Dimensions: [{ Name: 'InstanceType', Value: 'm5.large' }] }],
+          Metrics: [
+            {
+              Dimensions: [{Name: 'InstanceType', Value: 'm5.large'}],
+            },
+          ],
         },
         {
           Metrics: [],
@@ -288,7 +377,11 @@ describe('utils', () => {
     it('should return empty array when no instance types are found', () => {
       const data = [
         {
-          Metrics: [{ Dimensions: [{ Name: 'InvalidType', Value: 't2.micro' }] }],
+          Metrics: [
+            {
+              Dimensions: [{Name: 'InvalidType', Value: 't2.micro'}],
+            },
+          ],
         },
       ];
 
@@ -324,9 +417,18 @@ describe('utils', () => {
       const groupedItems = groupItems(items);
 
       const expectedGroupedItems = [
-        { [METRICS_CONFIG.MEM_UTILIZATION]: 100, [METRICS_CONFIG.CPU_UTILIZATION]: 30 },
-        { [METRICS_CONFIG.MEM_UTILIZATION]: 200, [METRICS_CONFIG.CPU_UTILIZATION]: 40 },
-        { [METRICS_CONFIG.MEM_UTILIZATION]: 300, [METRICS_CONFIG.CPU_UTILIZATION]: 50 },
+        {
+          [METRICS_CONFIG.MEM_UTILIZATION]: 100,
+          [METRICS_CONFIG.CPU_UTILIZATION]: 30,
+        },
+        {
+          [METRICS_CONFIG.MEM_UTILIZATION]: 200,
+          [METRICS_CONFIG.CPU_UTILIZATION]: 40,
+        },
+        {
+          [METRICS_CONFIG.MEM_UTILIZATION]: 300,
+          [METRICS_CONFIG.CPU_UTILIZATION]: 50,
+        },
       ];
 
       expect(groupedItems).toEqual(expectedGroupedItems);
@@ -352,8 +454,14 @@ describe('utils', () => {
       const groupedItems = groupItems(items);
 
       const expectedGroupedItems = [
-        { [METRICS_CONFIG.MEM_UTILIZATION]: 100, [METRICS_CONFIG.CPU_UTILIZATION]: 30 },
-        { [METRICS_CONFIG.MEM_UTILIZATION]: 200, [METRICS_CONFIG.CPU_UTILIZATION]: 40 },
+        {
+          [METRICS_CONFIG.MEM_UTILIZATION]: 100,
+          [METRICS_CONFIG.CPU_UTILIZATION]: 30,
+        },
+        {
+          [METRICS_CONFIG.MEM_UTILIZATION]: 200,
+          [METRICS_CONFIG.CPU_UTILIZATION]: 40,
+        },
       ];
 
       expect(groupedItems).toEqual(expectedGroupedItems);
@@ -362,16 +470,12 @@ describe('utils', () => {
 
   describe('groupItemsByKeys', () => {
     it('should group items correctly by keys', () => {
-      const items: DataItem[] = [
-        { 'key1': 100 },
-        { 'key2': 200 },
-        { 'key1': 300 },
-      ];
+      const items: DataItem[] = [{key1: 100}, {key2: 200}, {key1: 300}];
 
       const groupedItems = groupItemsByKeys(items);
       expect(groupedItems).toEqual({
-        'key1': [100, 300],
-        'key2': [200],
+        key1: [100, 300],
+        key2: [200],
       });
     });
 
@@ -386,7 +490,15 @@ describe('utils', () => {
     it('should return empty array when resolvedMetricData has no valid metrics', () => {
       const resolvedMetricData = [
         [
-          { Label: 'invalid_metric', Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 50 }] },
+          {
+            Label: 'invalid_metric',
+            Datapoints: [
+              {
+                Timestamp: '2024-06-21T12:00:00Z',
+                Average: 50,
+              },
+            ],
+          },
         ],
       ];
 
@@ -397,23 +509,42 @@ describe('utils', () => {
     it('should calculate average correctly for CPU_UTILIZATION_EC2 metrics', () => {
       const resolvedMetricData = [
         [
-          { Label: METRICS_CONFIG.CPU_UTILIZATION_EC2, Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 30 }] },
+          {
+            Label: METRICS_CONFIG.CPU_UTILIZATION_EC2,
+            Datapoints: [
+              {
+                Timestamp: '2024-06-21T12:00:00Z',
+                Average: 30,
+              },
+            ],
+          },
         ],
       ];
 
       const metricAverages = getMetricAverages(resolvedMetricData);
-      expect(metricAverages).toEqual([{ [METRICS_CONFIG.CPU_UTILIZATION_EC2]: 30 }]);
+      expect(metricAverages).toEqual([
+        {[METRICS_CONFIG.CPU_UTILIZATION_EC2]: 30},
+      ]);
     });
 
     it('should calculate average correctly for MEM_TOTAL metrics', () => {
       const resolvedMetricData = [
         [
-          { Label: METRICS_CONFIG.MEM_TOTAL, Datapoints: [{ Timestamp: '2024-06-21T12:00:00Z', Average: 2147483648, Unit: 'Bytes' }] },
+          {
+            Label: METRICS_CONFIG.MEM_TOTAL,
+            Datapoints: [
+              {
+                Timestamp: '2024-06-21T12:00:00Z',
+                Average: 2147483648,
+                Unit: 'Bytes',
+              },
+            ],
+          },
         ],
       ];
 
       const metricAverages = getMetricAverages(resolvedMetricData);
-      expect(metricAverages).toEqual([{ [METRICS_CONFIG.MEM_TOTAL]: 2 }]);
+      expect(metricAverages).toEqual([{[METRICS_CONFIG.MEM_TOTAL]: 2}]);
     });
 
     it('should return empty array when datapoints are empty', () => {

@@ -1,16 +1,14 @@
 // eslint-disable-next-line node/no-extraneous-import
-import { CloudWatchClient, GetMetricStatisticsCommand } from '@aws-sdk/client-cloudwatch';
-import { getCloudwatchMetrics } from '../api/get-cloudwatch-metrics';
-import { getCloudWatchData } from '../api/get-cloudwatch-data';
+import {getCloudWatchData} from '../api/get-cloudwatch-data';
 import {
   convertSecondsToMS,
   getFinalGroupedItems,
   getInstanceTypes,
 } from '../utils/utils';
-import { PluginParams } from '../interfaces';
-import { mockGlobalConfig, mockInstances } from '../__mocks__';
-import { AWSCredentials } from '../types';
-import { METRICS_CONFIG } from '../constants/constants';
+import {PluginParams} from '../interfaces';
+import {mockGlobalConfig, mockInstances} from '../__mocks__';
+import {AWSCredentials} from '../types';
+import {METRICS_CONFIG} from '../constants/constants';
 
 // Mock the dependencies
 jest.mock('@aws-sdk/client-cloudwatch', () => {
@@ -20,7 +18,10 @@ jest.mock('@aws-sdk/client-cloudwatch', () => {
     CloudWatchClient: jest.fn().mockImplementation(() => ({
       send: jest.fn().mockResolvedValue({
         Datapoints: [
-          { Average: 50, Timestamp: new Date().toISOString() },
+          {
+            Average: 50,
+            Timestamp: new Date().toISOString(),
+          },
         ],
       }),
     })),
@@ -41,7 +42,12 @@ jest.mock('../api/get-cloudwatch-metrics', () => ({
         Metrics: [
           {
             MetricName: 'MemoryUsage',
-            Dimensions: [{ Name: 'InstanceId', Value: instance.InstanceId }],
+            Dimensions: [
+              {
+                Name: 'InstanceId',
+                Value: instance.InstanceId,
+              },
+            ],
             Namespace: 'AWS/EC2',
           },
         ],
@@ -65,7 +71,10 @@ describe('getCloudWatchData', () => {
   };
 
   const expectedGroupedItems = [
-    { [METRICS_CONFIG.MEM_UTILIZATION]: 50, [METRICS_CONFIG.CPU_UTILIZATION]: 50 },
+    {
+      [METRICS_CONFIG.MEM_UTILIZATION]: 50,
+      [METRICS_CONFIG.CPU_UTILIZATION]: 50,
+    },
   ];
 
   const expectedInstanceTypes = ['t2.micro', 't2.medium'];
