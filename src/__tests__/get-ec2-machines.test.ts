@@ -7,139 +7,145 @@ jest.mock('@aws-sdk/client-ec2', () => {
   return {
     ...originalModule,
     EC2Client: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation((command: { input: DescribeInstancesCommandInput }) => {
-        const tagFilter = command.input.Filters?.find((filter) => filter.Name === 'tag:Project');
-        const tagValue = tagFilter?.Values?.[0] ?? '';
+      send: jest
+        .fn()
+        .mockImplementation(
+          (command: {input: DescribeInstancesCommandInput}) => {
+            const tagFilter = command.input.Filters?.find(
+              filter => filter.Name === 'tag:Project'
+            );
+            const tagValue = tagFilter?.Values?.[0] ?? '';
 
-        if (tagValue === 'no-reservations') {
-          return Promise.resolve({
-            Reservations: undefined,
-          });
-        } else if (tagValue === 'no-instances') {
-          return Promise.resolve({
-            Reservations: [
-              {
-                Instances: undefined,
-              },
-            ],
-          });
-        } else if (tagValue === 'no-block-devices') {
-          return Promise.resolve({
-            Reservations: [
-              {
-                Instances: [
+            if (tagValue === 'no-reservations') {
+              return Promise.resolve({
+                Reservations: undefined,
+              });
+            } else if (tagValue === 'no-instances') {
+              return Promise.resolve({
+                Reservations: [
                   {
-                    InstanceId: 'i-1234567890abcdef0',
-                    ImageId: 'ami-05d72852800cbf29e',
-                    InstanceType: 't2.micro',
-                    RootDeviceName: '/dev/sda1',
-                    BlockDeviceMappings: undefined,
+                    Instances: undefined,
                   },
                 ],
-              },
-            ],
-          });
-        } else if (tagValue === 'empty-block-devices') {
-          return Promise.resolve({
-            Reservations: [
-              {
-                Instances: [
+              });
+            } else if (tagValue === 'no-block-devices') {
+              return Promise.resolve({
+                Reservations: [
                   {
-                    InstanceId: 'i-1234567890abcdef0',
-                    ImageId: 'ami-05d72852800cbf29e',
-                    InstanceType: 't2.micro',
-                    RootDeviceName: '/dev/sda1',
-                    BlockDeviceMappings: [],
-                  },
-                ],
-              },
-            ],
-          });
-        } else if (tagValue === 'mixed-block-devices') {
-          return Promise.resolve({
-            Reservations: [
-              {
-                Instances: [
-                  {
-                    InstanceId: 'i-1234567890abcdef0',
-                    ImageId: 'ami-05d72852800cbf29e',
-                    InstanceType: 't2.micro',
-                    RootDeviceName: '/dev/sda1',
-                    BlockDeviceMappings: [
+                    Instances: [
                       {
-                        DeviceName: '/dev/sda1',
-                        Ebs: {
-                          VolumeId: 'vol-01c4a06424ff37c90',
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    InstanceId: 'i-0987654321fedcba0',
-                    ImageId: 'ami-1234567890abcdef0',
-                    InstanceType: 't2.medium',
-                    RootDeviceName: '/dev/sda2',
-                    BlockDeviceMappings: undefined,
-                  },
-                ],
-              },
-            ],
-          });
-        } else if (tagValue === 'various-properties') {
-          return Promise.resolve({
-            Reservations: [
-              {
-                Instances: [
-                  {
-                    InstanceId: 'i-11111111111111111',
-                    ImageId: 'ami-11111111111111111',
-                    InstanceType: 't2.large',
-                    RootDeviceName: '/dev/sdb1',
-                    BlockDeviceMappings: [
-                      {
-                        DeviceName: '/dev/sdb1',
-                        Ebs: {
-                          VolumeId: 'vol-11111111111111111',
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    InstanceId: undefined,
-                    ImageId: undefined,
-                    InstanceType: undefined,
-                    RootDeviceName: undefined,
-                    BlockDeviceMappings: undefined,
-                  },
-                ],
-              },
-            ],
-          });
-        } else {
-          return Promise.resolve({
-            Reservations: [
-              {
-                Instances: [
-                  {
-                    InstanceId: 'i-1234567890abcdef0',
-                    ImageId: 'ami-05d72852800cbf29e',
-                    InstanceType: 't2.micro',
-                    RootDeviceName: '/dev/sda1',
-                    BlockDeviceMappings: [
-                      {
-                        DeviceName: '/dev/sda1',
-                        Ebs: {
-                          VolumeId: 'vol-01c4a06424ff37c90',
-                        },
+                        InstanceId: 'i-1234567890abcdef0',
+                        ImageId: 'ami-05d72852800cbf29e',
+                        InstanceType: 't2.micro',
+                        RootDeviceName: '/dev/sda1',
+                        BlockDeviceMappings: undefined,
                       },
                     ],
                   },
                 ],
-              },
-            ],
-          });
-        }
-      }),
+              });
+            } else if (tagValue === 'empty-block-devices') {
+              return Promise.resolve({
+                Reservations: [
+                  {
+                    Instances: [
+                      {
+                        InstanceId: 'i-1234567890abcdef0',
+                        ImageId: 'ami-05d72852800cbf29e',
+                        InstanceType: 't2.micro',
+                        RootDeviceName: '/dev/sda1',
+                        BlockDeviceMappings: [],
+                      },
+                    ],
+                  },
+                ],
+              });
+            } else if (tagValue === 'mixed-block-devices') {
+              return Promise.resolve({
+                Reservations: [
+                  {
+                    Instances: [
+                      {
+                        InstanceId: 'i-1234567890abcdef0',
+                        ImageId: 'ami-05d72852800cbf29e',
+                        InstanceType: 't2.micro',
+                        RootDeviceName: '/dev/sda1',
+                        BlockDeviceMappings: [
+                          {
+                            DeviceName: '/dev/sda1',
+                            Ebs: {
+                              VolumeId: 'vol-01c4a06424ff37c90',
+                            },
+                          },
+                        ],
+                      },
+                      {
+                        InstanceId: 'i-0987654321fedcba0',
+                        ImageId: 'ami-1234567890abcdef0',
+                        InstanceType: 't2.medium',
+                        RootDeviceName: '/dev/sda2',
+                        BlockDeviceMappings: undefined,
+                      },
+                    ],
+                  },
+                ],
+              });
+            } else if (tagValue === 'various-properties') {
+              return Promise.resolve({
+                Reservations: [
+                  {
+                    Instances: [
+                      {
+                        InstanceId: 'i-11111111111111111',
+                        ImageId: 'ami-11111111111111111',
+                        InstanceType: 't2.large',
+                        RootDeviceName: '/dev/sdb1',
+                        BlockDeviceMappings: [
+                          {
+                            DeviceName: '/dev/sdb1',
+                            Ebs: {
+                              VolumeId: 'vol-11111111111111111',
+                            },
+                          },
+                        ],
+                      },
+                      {
+                        InstanceId: undefined,
+                        ImageId: undefined,
+                        InstanceType: undefined,
+                        RootDeviceName: undefined,
+                        BlockDeviceMappings: undefined,
+                      },
+                    ],
+                  },
+                ],
+              });
+            } else {
+              return Promise.resolve({
+                Reservations: [
+                  {
+                    Instances: [
+                      {
+                        InstanceId: 'i-1234567890abcdef0',
+                        ImageId: 'ami-05d72852800cbf29e',
+                        InstanceType: 't2.micro',
+                        RootDeviceName: '/dev/sda1',
+                        BlockDeviceMappings: [
+                          {
+                            DeviceName: '/dev/sda1',
+                            Ebs: {
+                              VolumeId: 'vol-01c4a06424ff37c90',
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              });
+            }
+          }
+        ),
     })),
   };
 });
